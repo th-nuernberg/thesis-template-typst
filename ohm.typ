@@ -106,7 +106,10 @@
 }
 
 #let thesis-titlepage() = context {
+  pagebreak(weak: true)
+  set page(numbering: none)
   set align(center)
+
   let examiners = normalize-multivalue(p("examiners"))
   let supervisors = normalize-multivalue(p("supervisors"))
 
@@ -139,10 +142,13 @@
     #v(2 * ex)
     #align(left, t("copyright"))
   ]
-  pagebreak()
+  pagebreak(weak: true)
 }
 
 #let thesis-abstract() = context {
+  pagebreak(weak: true)
+  set page(numbering: "i")
+
   heading(numbering: none, t("abstract"))
   let abstract = p("abstract")
   abstract.main
@@ -157,6 +163,11 @@
     heading(numbering: none, depth: 2, t("kurzdarstellung"))
     abstract.alt
   }
+}
+
+#let thesis-start() = {
+  pagebreak(weak: true)
+  counter(page).update(1)
 }
 
 #let thesis(
@@ -265,7 +276,8 @@
 
   set page(
     paper: "a4",
-    margin: (x: 2.75cm, y: 3.5cm)
+    margin: (x: 2.75cm, y: 3.5cm),
+    numbering: "1",
   )
 
   set text(
@@ -305,7 +317,9 @@
     thesis-titlepage()
     thesis-abstract()
 
-    pagebreak(weak: true)
+    // Reset page numbering and start with document content
+    thesis-start()
+
     body
   } else {
     body
