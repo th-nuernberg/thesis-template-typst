@@ -14,6 +14,10 @@
 #let ex = 5pt
 
 #let thesis-parameters = state("thesis-parameters")
+#let p(key, default: none, map: v => v) = {
+  let value = thesis-parameters.get().at(key, default: default)
+  return map(value)
+}
 
 #let translations = (
   "de": (
@@ -94,21 +98,20 @@
 
 #let thesis-titlepage() = context {
   set align(center)
-  let p = thesis-parameters.get()
-  let examiners = normalize-multivalue(p.at("examiners", default: none))
-  let supervisors = normalize-multivalue(p.at("supervisors", default: none))
+  let examiners = normalize-multivalue(p("examiners"))
+  let supervisors = normalize-multivalue(p("supervisors"))
 
   text(size: 8pt)[#t("faculty") #t("at_uni") #t("university")]
   v(6 * ex)
   image("assets/ohm-logo.svg", width: 90%)
   v(6 * ex)
-  text(size: 14.4pt, t(p.at("type")))
+  text(size: 14.4pt, p("type", map: t))
   v(8 * ex)
-  text(size: 20.74pt, p.at("title"))
+  text(size: 20.74pt, p("title"))
   v(8 * ex)
-  text(size: 14.4pt, p.at("author"))
-  if p.at("student-id", default: none) != none {
-    [\ #t("student-id"): #p.student-id]
+  text(size: 14.4pt, p("author"))
+  if p("student-id", default: none) != none {
+    [\ #t("student-id"): #p("student-id")]
   }
   v(8 * ex)
   text(size: 12pt, grid(
@@ -117,13 +120,13 @@
     column-gutter: 1em,
     align: (right, left),
     ..if examiners != none { (if examiners.len() == 1 [#t("examiners-singular"):] else [#t("examiners-plural"):], stack(spacing: 0.65em, ..examiners)) },
-    ..if supervisors != none { (if supervisors.len() == 1 [#t("supervisors-singular"):] else [#t("supervisors-plural"):], stack(spacing: 0.65em, ..supervisors, p.at("company", default: none))) },
+    ..if supervisors != none { (if supervisors.len() == 1 [#t("supervisors-singular"):] else [#t("supervisors-plural"):], stack(spacing: 0.65em, ..supervisors, p("company"))) },
   ))
   v(1fr)
   text(size: 8pt)[
-    #let company = p.at("company", default: none)
-    #let copyright = if company != none { company } else { p.author }
-    #sym.copyright #copyright #p.at("date").year()
+    #let company = p("company")
+    #let copyright = if company != none { company } else { p("author") }
+    #sym.copyright #copyright #p("date", map: d => d.year())
     #v(2 * ex)
     #align(left, t("copyright"))
   ]
