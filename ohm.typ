@@ -1,0 +1,249 @@
+/*
+ * Ohm-Doc Typst Styles
+ *
+ * Copyright (c) 2026 Nils Weber <me@vimkat.dev>
+ *
+ * This template is based on the original LaTeX template by Marvin Fette (see https://github.com/th-nuernberg/thesis-template-latex)
+ * Please read the README.md for instructions and how to use this template.
+ *
+ * Changelog:
+ *
+ * 1.0.0 (2026/XX/XX) Initial release
+ */
+
+#let ex = 5pt
+
+#let thesis-parameters = state("thesis-parameters")
+
+#let translations = (
+  "de": (
+    "at_uni": "an der Technischen Hochschule Nürnberg",
+    "bachelor": "Bachelorarbeit",
+    "master": "Masterarbeit",
+    "report": "Bericht",
+    "faculty": "Fakultät Informatik",
+    "student-id": "Matrikelnummer",
+    "examiners-singular": "Prüfer",
+    "examiners-plural": "Prüfer",
+    "supervisors-singular": "Betreuer",
+    "supervisors-plural": "Betreuer",
+    "copyright": context [
+      #let company = thesis-parameters.get().at("company", default: none)
+      #let copyright = if company != none [von #company] else [des Urhebers]
+      Diese Arbeit, einschließlich ihrer Teile, *ist urheberrechtlich geschützt*.
+      Jede Verwertung außerhalb der engen Grenzen des Urheberrechtsgesetzes ohne Zustimmung #copyright ist untersagt und strafbar.
+      Dies gilt insbesondere für Vervielfältigungen, Übersetzungen, Mikroverfilmung und die Speicherung und Verarbeitung in elektronischen Systemen.
+    ],
+    "TOC": "Inhaltsverzeichnis",
+    "LOT": "Tabellenverzeichnis",
+    "LOF": "Abbildungsverzeichnis",
+    "LOL": "Quellcodeverzeichnis",
+    "BIB": "Referenzen",
+  ),
+  "de-gender": (
+    "examiners-singular": "Prüfer*in",
+    "examiners-plural": "Prüfer*innen",
+    "supervisors-singular": "Betreuer*in",
+    "supervisors-plural": "Betreuer*innen",
+    "copyright": context [
+      #let company = thesis-parameters.get().at("company", default: none)
+      #let copyright = if company != none { company } else { thesis-parameters.get().at("author") }
+      Diese Arbeit, einschließlich ihrer Teile, *ist urheberrechtlich geschützt*.
+      Jede Verwertung außerhalb der engen Grenzen des Urheberrechtsgesetzes ohne Zustimmung von #copyright ist untersagt und strafbar.
+      Dies gilt insbesondere für Vervielfältigungen, Übersetzungen, Mikroverfilmung und die Speicherung und Verarbeitung in elektronischen Systemen.
+    ],
+  ),
+  "en": (
+    "at_uni": "at Nuremberg Institute of Technology",
+    "bachelor": "Bachelor Thesis",
+    "master": "Master Thesis",
+    "report": "Report",
+    "faculty": "Faculty of Computer Science",
+    "student-id": "Student ID",
+    "examiners-singular": "Examiner",
+    "examiners-plural": "Examiners",
+    "supervisors-singular": "Supervisor",
+    "supervisors-plural": "Supervisors",
+    "copyright": context [
+      #let company = thesis-parameters.get().at("company", default: none)
+      #let copyright = if company != none { company } else [the author]
+      This work, including its parts, *is protected by copyright*.
+      Any use outside the narrow limits of copyright law without the consent of #copyright is prohibited and punishable by law.
+      This applies in particular to reproductions, translations, microfilming and storage and processing in electronic systems.
+    ],
+    "TOC": "Table of Contents",
+    "LOT": "List of Tables",
+    "LOF": "List of Figures",
+    "LOL": "List of Listings",
+    "BIB": "References",
+  ),
+)
+
+#let t(key, default: none) = context {
+  let locale = thesis-parameters.get().lang
+  let locale-fallback = locale.split("-").at(0)
+
+  return translations.at(locale).at(key, default: translations.at(locale-fallback).at(key, default: default))
+}
+
+#let normalize-multivalue(value) = {
+  if value == none { return none }
+  if type(value) == array { return value }
+  return (value,)
+}
+
+#let thesis-titlepage() = context {
+  set align(center)
+  let p = thesis-parameters.get()
+  let examiners = normalize-multivalue(p.at("examiners", default: none))
+  let supervisors = normalize-multivalue(p.at("supervisors", default: none))
+
+  text(size: 8pt)[#t("faculty") #t("at_uni") #t("university")]
+  v(6 * ex)
+  image("assets/ohm-logo.svg", width: 90%)
+  v(6 * ex)
+  text(size: 14.4pt, t(p.at("type")))
+  v(8 * ex)
+  text(size: 20.74pt, p.at("title"))
+  v(8 * ex)
+  text(size: 14.4pt, p.at("author"))
+  if p.at("student-id", default: none) != none {
+    [\ #t("student-id"): #p.student-id]
+  }
+  v(8 * ex)
+  text(size: 12pt, grid(
+    columns: (auto, auto),
+    row-gutter: 1.6em,
+    column-gutter: 1em,
+    align: (right, left),
+    ..if examiners != none { (if examiners.len() == 1 [#t("examiners-singular"):] else [#t("examiners-plural"):], stack(spacing: 0.65em, ..examiners)) },
+    ..if supervisors != none { (if supervisors.len() == 1 [#t("supervisors-singular"):] else [#t("supervisors-plural"):], stack(spacing: 0.65em, ..supervisors, p.at("company", default: none))) },
+  ))
+  v(1fr)
+  text(size: 8pt)[
+    #let company = p.at("company", default: none)
+    #let copyright = if company != none { company } else { p.author }
+    #sym.copyright #copyright #p.at("date").year()
+    #v(2 * ex)
+    #align(left, t("copyright"))
+  ]
+  pagebreak()
+}
+
+#let thesis(
+  /// Title of the thesis or report.
+  title: none,
+
+  /// Author of this thesis or report.
+  author: none,
+
+  /// Student ID printed below the author if given.
+  student-id: none,
+
+  /// Date of this work, defaults to today.
+  date: datetime.today(),
+
+  /// Citation standard to use, see https://typst.app/docs/reference/model/bibliography for a full list.
+  bibliography-style: none,
+
+  /// Type of this thesis, can be "bachelor", "master" or "report".
+  type: none,
+
+  /// Language of this document, only "de", "en" are fully supported.
+  lang: none,
+
+  /// Whether to layout the document as a book (that can be bound) or not.
+  book: false,
+
+  /// Thesis abstract. To use multiple languages, use a dictionary with the language as the key.
+  abstract: none,
+
+  /// Additional acknowledgements added to the beginning.
+  acknowledgements: none,
+
+  /// Name of the examiner or list of names if multiple examiners.
+  examiners: none,
+
+  /// Name of the supervisor or list of names if multiple supervisors.
+  supervisors: none,
+
+  /// List of keywords for the title page.
+  keywords: none,
+
+  /// URL to a repository with additional references or content, e.g. a Git repository.
+  repository: none,
+
+  /// Company that supported this thesis.
+  company: none,
+
+  /// Don't emit any parts of the document itself, only set the styling options. Structure can be set up manually using the thesis-* functions.
+  manual: true,
+
+  /// Enable debug mode that shows errors within the document.
+  debug: false,
+
+  /// Thesis content, use as global show rule is encouraged.
+  body,
+) = {
+  // Validate parameters
+  if not ("bachelor", "master", "report").contains(type) {
+    panic("Set either 'bachelor', 'master', or 'report' as the document type option")
+  }
+  let lang-base = lang.split("-").at(0)
+  if not ("de", "en").contains(lang-base) {
+    panic("Set either 'de' or 'en' as the document language")
+  }
+
+  // All function parameters to be used in the thesis-* functions
+  thesis-parameters.update((
+    title: title,
+    author: author,
+    student-id: student-id,
+    date: date,
+    bibliography-style: bibliography-style,
+    type: type,
+    lang: lang,
+    book: book,
+    abstract: abstract,
+    acknowledgements: acknowledgements,
+    supervisors: supervisors,
+    examiners: examiners,
+    keywords: keywords,
+    repository: repository,
+    company: company,
+    manual: manual,
+    debug: debug,
+  ))
+
+  let description = none // TODO: Handle multiple languages
+
+  // Set document properties if given
+  if title != none { set document(title: title) }
+  if author != none { set document(author: author) }
+  if description != none { set document(description: description) }
+  if keywords != none { set document(keywords: keywords) }
+
+  set page(
+    paper: "a4",
+    margin: (x: 2.75cm, y: 3.5cm)
+  )
+
+  set text(
+    lang: lang-base,
+    font: "New Computer Modern",
+  )
+
+  // Show rules for common abbreviations
+
+  let nnbsp = [\u{202F}]
+  show regex("z\.\s?B\."):       [z.\u{202F}B.]
+  show regex("u\.\s?a\."):       [u.\u{202F}a.]
+  show regex("d\.\s?h\."):       [d.\u{202F}h.]
+  show regex("e\.\s?g\."):       [e.\u{FEFF}g.]
+  show regex("i\.\s?e\."):       [i.\u{FEFF}e.]
+  show regex("w\.\s?r\.\s?t\."): [w.\u{FEFF}r.\u{FEFF}t.]
+
+  thesis-titlepage()
+
+  body
+}
