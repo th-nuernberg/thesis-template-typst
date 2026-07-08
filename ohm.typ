@@ -46,6 +46,7 @@
     "BIB": "Referenzen",
     "chapter": "Kapitel",
     "section": "Abschnitt",
+    "ack": "Danksagung",
     "abstract": "Kurzdarstellung",
     "kurzdarstellung": "Abstract",
   ),
@@ -87,13 +88,14 @@
     "BIB": "References",
     "chapter": "Chapter",
     "section": "Section",
+    "ack": "Acknowledgements",
     "abstract": "Abstract",
     "kurzdarstellung": "Kurzdarstellung",
   ),
 )
 
-#let t(key, default: none) = context {
-  let locale = thesis-parameters.get().lang
+#let t(key, default: none) = {
+  let locale = p("lang")
   let locale-fallback = locale.split("-").at(0)
 
   return translations.at(locale).at(key, default: translations.at(locale-fallback).at(key, default: default))
@@ -143,6 +145,13 @@
     #align(left, t("copyright"))
   ]
   pagebreak(weak: true)
+}
+
+#let thesis-acknowledgements() = context {
+  if p("acknowledgements") != none {
+    heading(numbering: none, t("ack"))
+    p("acknowledgements")
+  }
 }
 
 #let thesis-abstract() = context {
@@ -296,8 +305,8 @@
   show regex("i\.\s?e\."):       [i.\u{FEFF}e.]
   show regex("w\.\s?r\.\s?t\."): [w.\u{FEFF}r.\u{FEFF}t.]
 
-  set heading(numbering: "1.1", supplement: t("section"))
-  show heading.where(level: 1): set heading(supplement: t("chapter"))
+  set heading(numbering: "1.1", supplement: context t("section"))
+  show heading.where(level: 1): set heading(supplement: context t("chapter"))
   show heading.where(level: 1): it => {
     set text(size: 24.88pt, weight: "medium")
     pagebreak(weak: true)
@@ -315,11 +324,11 @@
   // Print document structure or nothing (user has to set it up manually)
   if not manual {
     thesis-titlepage()
+    thesis-acknowledgements()
     thesis-abstract()
 
     // Reset page numbering and start with document content
     thesis-start()
-
     body
   } else {
     body
