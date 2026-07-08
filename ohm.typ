@@ -11,6 +11,7 @@
  * 1.0.0 (2026/XX/XX) Initial release
  */
 
+#let _type = type
 #let ex = 5pt
 
 #let thesis-parameters = state("thesis-parameters")
@@ -43,6 +44,10 @@
     "LOF": "Abbildungsverzeichnis",
     "LOL": "Quellcodeverzeichnis",
     "BIB": "Referenzen",
+    "chapter": "Kapitel",
+    "section": "Abschnitt",
+    "abstract": "Kurzdarstellung",
+    "kurzdarstellung": "Abstract",
   ),
   "de-gender": (
     "examiners-singular": "Prüfer*in",
@@ -80,6 +85,10 @@
     "LOF": "List of Figures",
     "LOL": "List of Listings",
     "BIB": "References",
+    "chapter": "Chapter",
+    "section": "Section",
+    "abstract": "Abstract",
+    "kurzdarstellung": "Kurzdarstellung",
   ),
 )
 
@@ -133,6 +142,23 @@
   pagebreak()
 }
 
+#let thesis-abstract() = context {
+  heading(numbering: none, t("abstract"))
+  let abstract = p("abstract")
+  abstract.main
+
+  let keywords = normalize-multivalue(p("keywords"))
+  if keywords != none and keywords.len() > 0 {
+    heading(numbering: none, depth: 2)[Keywords]
+    keywords.join([, ])
+  }
+  if abstract.alt != none {
+    pagebreak(weak: true)
+    heading(numbering: none, depth: 2, t("kurzdarstellung"))
+    abstract.alt
+  }
+}
+
 #let thesis(
   /// Title of the thesis or report.
   title: none,
@@ -180,7 +206,7 @@
   company: none,
 
   /// Don't emit any parts of the document itself, only set the styling options. Structure can be set up manually using the thesis-* functions.
-  manual: true,
+  manual: false,
 
   /// Enable debug mode that shows errors within the document.
   debug: false,
@@ -197,6 +223,18 @@
     panic("Set either 'de' or 'en' as the document language")
   }
 
+  // Convert multilingual abstract into main/alt abstract
+  if lang-base == "en" and (_type(abstract) != dictionary or abstract.at("de", default: none) == none) {
+    panic("Kurzdarstellung required for English language")
+  }
+  let abstract-semantic = if _type(abstract) != dictionary {
+    (main: abstract, alt: none)
+  } else if lang-base == "de" {
+    (main: abstract.de, alt: abstract.en)
+  } else {
+    (main: abstract.en, alt: abstract.de)
+  }
+
   // All function parameters to be used in the thesis-* functions
   thesis-parameters.update((
     title: title,
@@ -207,7 +245,7 @@
     type: type,
     lang: lang,
     book: book,
-    abstract: abstract,
+    abstract: abstract-semantic,
     acknowledgements: acknowledgements,
     supervisors: supervisors,
     examiners: examiners,
@@ -218,12 +256,11 @@
     debug: debug,
   ))
 
-  let description = none // TODO: Handle multiple languages
 
   // Set document properties if given
   if title != none { set document(title: title) }
   if author != none { set document(author: author) }
-  if description != none { set document(description: description) }
+  if abstract-semantic.main != none { set document(description: abstract-semantic.main) }
   if keywords != none { set document(keywords: keywords) }
 
   set page(
@@ -234,6 +271,7 @@
   set text(
     lang: lang-base,
     font: "New Computer Modern",
+    weight: "medium",
   )
 
   // Show rules for common abbreviations
@@ -246,7 +284,30 @@
   show regex("i\.\s?e\."):       [i.\u{FEFF}e.]
   show regex("w\.\s?r\.\s?t\."): [w.\u{FEFF}r.\u{FEFF}t.]
 
-  thesis-titlepage()
+  set heading(numbering: "1.1", supplement: t("section"))
+  show heading.where(level: 1): set heading(supplement: t("chapter"))
+  show heading.where(level: 1): it => {
+    set text(size: 24.88pt, weight: "medium")
+    pagebreak(weak: true)
+    pad(
+      top: 16*ex,
+      bottom: 8*ex,
+      if it.numbering != none {
+        stack(spacing: 8*ex, text(size: 0.85em)[#it.supplement #it.level], it.body)
+      } else {
+        it.body
+      }
+    )
+  }
 
-  body
+  // Print document structure or nothing (user has to set it up manually)
+  if not manual {
+    thesis-titlepage()
+    thesis-abstract()
+
+    pagebreak(weak: true)
+    body
+  } else {
+    body
+  }
 }
