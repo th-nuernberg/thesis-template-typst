@@ -402,10 +402,7 @@
     register-glossary(entries)
   }
 
-
-
   // Show rules for common abbreviations
-
   let nnbsp = [\u{202F}]
   show regex("z\.\s?B\."):       [z.\u{202F}B.]
   show regex("u\.\s?a\."):       [u.\u{202F}a.]
@@ -422,7 +419,7 @@
     pagebreak(weak: true)
     v(16*ex)
     if it.numbering != none {
-      stack(spacing: 8*ex, text(size: 0.85em)[#it.supplement #it.level], it.body)
+      stack(spacing: 8*ex, text(size: 0.85em)[#it.supplement #heading-number(it)], it.body)
     } else {
       it.body
     }
