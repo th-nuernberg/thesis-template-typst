@@ -246,6 +246,20 @@
   }
 }
 
+#let thesis-bibliography() = context {
+  let bib-file = p("bibliography-file")
+  let bib-style = p("bibliography-style")
+
+  if bib-file != none {
+    frontmatter-heading(t("BIB"))
+    bibliography(
+      bib-file,
+      title: none,
+      style: if bib-style == "alphanumeric" { "ieee" } else { bib-style },
+    )
+  }
+}
+
 #let thesis-start() = {
   pagebreak(weak: true)
   counter(page).update(1)
@@ -264,8 +278,11 @@
   /// Date of this work, defaults to today.
   date: datetime.today(),
 
-  /// Citation standard to use, see https://typst.app/docs/reference/model/bibliography for a full list.
-  bibliography-style: none,
+  /// Bibliography to use for this document.
+  bibliography-file: none,
+
+  /// Citation standard to use, see https://typst.app/docs/reference/model/bibliography for a full list. Alphanumeric is supported.
+  bibliography-style: "ieee",
 
   /// Type of this thesis, can be "bachelor", "master" or "report".
   type: none,
@@ -336,6 +353,7 @@
     author: author,
     student-id: student-id,
     date: date,
+    bibliography-file: bibliography-file,
     bibliography-style: bibliography-style,
     type: type,
     lang: lang,
@@ -420,6 +438,9 @@
     numbering("1.1", counter(heading).get().first(), num.pos().first())
   )
 
+  // Alphanumeric is a citation style, not a bibliography style.
+  set cite(style: "alphanumeric") if bibliography-style == "alphanumeric"
+
   // Print document structure or nothing (user has to set it up manually)
   if not manual {
     thesis-titlepage()
@@ -435,6 +456,7 @@
     thesis-start()
     body
 
+    thesis-bibliography()
     thesis-glossary()
   } else {
     body
