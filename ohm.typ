@@ -121,6 +121,31 @@
   outline(title: none, ..args)
 }
 
+#let heading-number(c) = {
+  if c.numbering == none { return none }
+  return numbering(c.numbering,..counter(heading).at(c.location()))
+}
+
+#let current-heading(level: 1) = {
+  let before = query(selector(heading.where(level: level)).before(here()))
+  before = if before.len() > 1 { before.last() } else { none }
+  let after = query(selector(heading.where(level: level)).after(here()))
+  after = if after.len() > 1 { after.first() } else { none }
+
+  if level == 1 {
+    let isChapterPage = after == none or after != none and after.location().page() == here().page()
+    if not isChapterPage and before != none { return before }
+    return none
+  } else {
+    let chap = current-heading()
+    if chap == none or before == none { return none }
+    let chap-num = counter(heading).at(chap.location()).at(0)
+    let heading-chap-num = counter(heading).at(before.location()).at(0)
+    if chap-num == heading-chap-num { return before }
+  }
+}
+
+
 #let thesis-titlepage() = context {
   pagebreak(weak: true)
   set page(numbering: none)
@@ -381,6 +406,22 @@
     paper: "a4",
     margin: (x: 2.75cm, y: 3.5cm),
     numbering: "1",
+    header: context {
+      let chap = current-heading()
+      let sec = current-heading(level: 2) // set this to none to remove headings
+      set text(style: "italic")
+      show: upper
+
+      grid(
+        columns: (1fr, 1fr),
+        align: (left, right),
+        if sec != none [#heading-number(sec). #h(0.75em) #sec.body],
+        if chap != none {
+          if chap.numbering != none [#chap.supplement #heading-number(chap).#h(0.75em)]
+          chap.body
+        },
+      )
+    }
   )
 
   set text(
