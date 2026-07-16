@@ -11,6 +11,8 @@
  * 1.0.0 (2026/XX/XX) Initial release
  */
 
+#import "@preview/glossarium:0.5.10": make-glossary, register-glossary, print-glossary, gls, glspl
+
 #let _type = type
 #let ex = 5pt
 
@@ -43,7 +45,9 @@
     "LOT": "Tabellenverzeichnis",
     "LOF": "Abbildungsverzeichnis",
     "LOL": "Quellcodeverzeichnis",
+    "LOA": "Abkürzungsverzeichnis",
     "BIB": "Referenzen",
+    "glossary": "Glossar",
     "chapter": "Kapitel",
     "section": "Abschnitt",
     "ack": "Danksagung",
@@ -85,7 +89,9 @@
     "LOT": "List of Tables",
     "LOF": "List of Figures",
     "LOL": "List of Listings",
+    "LOA": "List of Acronyms",
     "BIB": "References",
+    "glossary": "Glossary",
     "chapter": "Chapter",
     "section": "Section",
     "ack": "Acknowledgements",
@@ -105,6 +111,14 @@
   if value == none { return none }
   if type(value) == array { return value }
   return (value,)
+}
+
+#let to-glossary-entries(dict) = dict.pairs().map(e => (key: e.at(0), ..e.at(1).map(s => eval(s, mode: "markup"))))
+
+#let frontmatter-heading = heading.with(numbering: none, outlined: false, bookmarked: true)
+#let outline-loX(..args) = {
+  show outline.entry: it => link(it.element.location(), it.indented(it.element.counter.display(at: it.element.location()), it.inner()))
+  outline(title: none, ..args)
 }
 
 #let thesis-titlepage() = context {
@@ -148,8 +162,11 @@
 }
 
 #let thesis-acknowledgements() = context {
+  pagebreak(weak: true)
+  set page(numbering: "i")
+
   if p("acknowledgements") != none {
-    heading(numbering: none, t("ack"))
+    frontmatter-heading(numbering: none, t("ack"))
     p("acknowledgements")
   }
 }
@@ -158,19 +175,74 @@
   pagebreak(weak: true)
   set page(numbering: "i")
 
-  heading(numbering: none, t("abstract"))
+  frontmatter-heading(numbering: none, t("abstract"))
   let abstract = p("abstract")
   abstract.main
 
   let keywords = normalize-multivalue(p("keywords"))
   if keywords != none and keywords.len() > 0 {
-    heading(numbering: none, depth: 2)[Keywords]
+    frontmatter-heading(numbering: none, depth: 2)[Keywords]
     keywords.join([, ])
   }
   if abstract.alt != none {
     pagebreak(weak: true)
-    heading(numbering: none, depth: 2, t("kurzdarstellung"))
+    frontmatter-heading(numbering: none, depth: 1, t("kurzdarstellung"))
     abstract.alt
+  }
+}
+
+#let thesis-toc() = context {
+  pagebreak(weak: true)
+  set page(numbering: "i")
+
+  frontmatter-heading(t("TOC"))
+
+  show outline.entry.where(level: 1): set outline.entry(fill: none)
+  show outline.entry.where(level: 1): it => {
+    set text(weight: "bold")
+    set block(above: 2em)
+    it
+  }
+  block(above: 0em, outline(title: none))
+}
+
+#let thesis-lof() = context {
+  pagebreak(weak: true)
+  set page(numbering: "i")
+
+  frontmatter-heading(t("LOF"))
+  outline-loX(target: figure.where(kind: image))
+}
+
+#let thesis-lot() = context {
+  pagebreak(weak: true)
+  set page(numbering: "i")
+
+  frontmatter-heading(t("LOT"))
+  outline-loX(target: figure.where(kind: table))
+}
+
+#let thesis-lol() = context {
+  pagebreak(weak: true)
+  set page(numbering: "i")
+
+  frontmatter-heading(t("LOL"))
+  outline-loX(target: figure.where(kind: raw))
+}
+
+#let thesis-loa() = context {
+  let entries = p("glossary")
+  if entries != none and entries.at("acronyms", default: none) != none {
+    frontmatter-heading(t("LOA"))
+    print-glossary(to-glossary-entries(entries.acronyms))
+  }
+}
+
+#let thesis-glossary() = context {
+  let entries = p("glossary")
+  if entries != none and entries.at("glossary", default: none) != none {
+    frontmatter-heading(t("glossary"))
+    print-glossary(to-glossary-entries(entries.glossary))
   }
 }
 
@@ -225,6 +297,9 @@
   /// Company that supported this thesis.
   company: none,
 
+  /// Entries for acronyms and glossary (Hint: Use a separate data file to define them).
+  glossary: none,
+
   /// Don't emit any parts of the document itself, only set the styling options. Structure can be set up manually using the thesis-* functions.
   manual: false,
 
@@ -272,6 +347,7 @@
     keywords: keywords,
     repository: repository,
     company: company,
+    glossary: glossary,
     manual: manual,
     debug: debug,
   ))
@@ -294,6 +370,21 @@
     font: "New Computer Modern",
     weight: "medium",
   )
+  set par(
+    justify: true,
+  )
+
+  // Register all entries
+  show: make-glossary
+  if glossary != none {
+    let entries = (
+      to-glossary-entries(glossary.acronyms),
+      to-glossary-entries(glossary.glossary),
+    ).flatten()
+    register-glossary(entries)
+  }
+
+
 
   // Show rules for common abbreviations
 
@@ -309,27 +400,42 @@
   show heading.where(level: 1): set heading(supplement: context t("chapter"))
   show heading.where(level: 1): it => {
     set text(size: 24.88pt, weight: "medium")
+    set par(leading: 0.5em, justify: false)
     pagebreak(weak: true)
-    pad(
-      top: 16*ex,
-      bottom: 8*ex,
-      if it.numbering != none {
-        stack(spacing: 8*ex, text(size: 0.85em)[#it.supplement #it.level], it.body)
-      } else {
-        it.body
-      }
-    )
+    v(16*ex)
+    if it.numbering != none {
+      stack(spacing: 8*ex, text(size: 0.85em)[#it.supplement #it.level], it.body)
+    } else {
+      it.body
+    }
+    v(4*ex)
+
+    // Counter reset for figure counters that are <chapter>.1..
+    counter(figure.where(kind: image)).update(0)
+    counter(figure.where(kind: table)).update(0)
+    counter(figure.where(kind: raw)).update(0)
   }
+
+  set figure(numbering: (..num) =>
+    numbering("1.1", counter(heading).get().first(), num.pos().first())
+  )
 
   // Print document structure or nothing (user has to set it up manually)
   if not manual {
     thesis-titlepage()
     thesis-acknowledgements()
     thesis-abstract()
+    thesis-loa()
+    thesis-toc()
+    thesis-lof()
+    thesis-lot()
+    thesis-lol()
 
     // Reset page numbering and start with document content
     thesis-start()
     body
+
+    thesis-glossary()
   } else {
     body
   }
