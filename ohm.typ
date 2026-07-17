@@ -472,6 +472,18 @@
   set figure(numbering: (..num) =>
     numbering("1.1", counter(heading).get().first(), num.pos().first())
   )
+  show figure: it => {
+    set align(center)
+    set block(spacing: 2em)
+    it
+  }
+  show figure.caption: it => {
+    v(0.5em)
+    it
+  }
+
+  set table(stroke: none)
+  set table.hline(stroke: 0.75pt)
 
   // Alphanumeric is a citation style, not a bibliography style.
   set cite(style: "alphanumeric") if bibliography-style == "alphanumeric"
