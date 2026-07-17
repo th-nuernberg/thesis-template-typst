@@ -189,9 +189,6 @@
 }
 
 #let thesis-acknowledgements() = context {
-  pagebreak(weak: true)
-  set page(numbering: "i")
-
   if p("acknowledgements") != none {
     frontmatter-heading(numbering: none, t("ack"))
     p("acknowledgements")
@@ -199,9 +196,6 @@
 }
 
 #let thesis-abstract() = context {
-  pagebreak(weak: true)
-  set page(numbering: "i")
-
   frontmatter-heading(numbering: none, t("abstract"))
   let abstract = p("abstract")
   abstract.main
@@ -219,9 +213,6 @@
 }
 
 #let thesis-toc() = context {
-  pagebreak(weak: true)
-  set page(numbering: "i")
-
   frontmatter-heading(t("TOC"))
 
   show outline.entry.where(level: 1): set outline.entry(fill: none)
@@ -234,25 +225,16 @@
 }
 
 #let thesis-lof() = context {
-  pagebreak(weak: true)
-  set page(numbering: "i")
-
   frontmatter-heading(t("LOF"))
   outline-loX(target: figure.where(kind: image))
 }
 
 #let thesis-lot() = context {
-  pagebreak(weak: true)
-  set page(numbering: "i")
-
   frontmatter-heading(t("LOT"))
   outline-loX(target: figure.where(kind: table))
 }
 
 #let thesis-lol() = context {
-  pagebreak(weak: true)
-  set page(numbering: "i")
-
   frontmatter-heading(t("LOL"))
   outline-loX(target: figure.where(kind: raw))
 }
@@ -495,21 +477,24 @@
 
   // Print document structure or nothing (user has to set it up manually)
   if not manual {
+    set page(numbering: "i")
     thesis-titlepage()
     thesis-acknowledgements()
     thesis-abstract()
-    thesis-loa()
     thesis-toc()
-    thesis-lof()
-    thesis-lot()
-    thesis-lol()
+    thesis-loa()
 
-    // Reset page numbering and start with document content
-    thesis-start()
+    pagebreak(weak: true)
+    counter(page).update(1)
+    set page(numbering: "1")
     body
 
-    thesis-bibliography()
+    thesis-lof()
+    thesis-lol()
+    thesis-lot()
+
     thesis-glossary()
+    thesis-bibliography()
     thesis-appendix()
   } else {
     body
