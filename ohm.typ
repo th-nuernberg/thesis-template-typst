@@ -424,6 +424,7 @@
     lang: lang-base,
     font: "New Computer Modern",
     weight: "medium",
+    size: 10pt,
   )
   set par(
     justify: true,
