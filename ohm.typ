@@ -318,6 +318,9 @@
   /// Whether to layout the document as a book (that can be bound) or not.
   book: false,
 
+  /// Data to include in the header. Can be 'none' (empty), '"chapter"' (only current chapter), '"full"' (current chapter and section) or custom content.
+  header: "chapter",
+
   /// Thesis abstract. To use multiple languages, use a dictionary with the language as the key.
   abstract: none,
 
@@ -407,20 +410,24 @@
     margin: (x: 2.75cm, y: 3.5cm),
     numbering: "1",
     header: context {
-      let chap = current-heading()
-      let sec = current-heading(level: 2) // set this to none to remove headings
-      set text(style: "italic")
-      show: upper
+      if _type(header) == str and ("chapter", "full").contains(header) {
+        let chap = current-heading()
+        let sec = if header == "full" { current-heading(level: 2) } else { none }
+        set text(style: "italic")
+        show: upper
 
-      grid(
-        columns: (1fr, 1fr),
-        align: (left, right),
-        if sec != none [#heading-number(sec). #h(0.75em) #sec.body],
-        if chap != none {
-          if chap.numbering != none [#chap.supplement #heading-number(chap).#h(0.75em)]
-          chap.body
-        },
-      )
+        grid(
+          columns: (1fr, 1fr),
+          align: (left, right),
+          if sec != none [#heading-number(sec). #h(0.75em) #sec.body],
+          if chap != none {
+            if chap.numbering != none [#chap.supplement #heading-number(chap).#h(0.75em)]
+            chap.body
+          },
+        )
+      }
+      else if header == none { none }
+      else { header }
     }
   )
 
