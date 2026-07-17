@@ -221,7 +221,7 @@
     set block(above: 2em)
     it
   }
-  block(above: 0em, outline(title: none))
+  block(above: 0em, outline(title: none, depth: 3))
 }
 
 #let thesis-lof() = context {
@@ -406,7 +406,7 @@
         show: upper
 
         grid(
-          columns: (1fr, 1fr),
+          columns: (auto, 1fr, auto),
           align: (left, right),
           if sec != none [#heading-number(sec). #h(0.75em) #sec.body],
           if chap != none {
@@ -449,8 +449,8 @@
   show regex("i\.\s?e\."):       [i.\u{FEFF}e.]
   show regex("w\.\s?r\.\s?t\."): [w.\u{FEFF}r.\u{FEFF}t.]
 
-  set heading(numbering: "1.1", supplement: context t("section"))
-  show heading.where(level: 1): set heading(supplement: context t("chapter"))
+  set heading(supplement: context t("section"))
+  show heading.where(level: 1): set heading(supplement: context t("chapter"), numbering: "1.1")
   show heading.where(level: 1): it => {
     set text(size: 24.88pt, weight: "medium")
     set par(leading: 0.5em, justify: false)
@@ -468,6 +468,8 @@
     counter(figure.where(kind: table)).update(0)
     counter(figure.where(kind: raw)).update(0)
   }
+  show heading.where(level: 2): set heading(numbering: "1.1")
+  show heading.where(level: 3): set heading(numbering: "1.1")
 
   set figure(numbering: (..num) =>
     numbering("1.1", counter(heading).get().first(), num.pos().first())
