@@ -50,6 +50,7 @@
     "glossary": "Glossar",
     "chapter": "Kapitel",
     "section": "Abschnitt",
+    "appendix": "Anhang",
     "ack": "Danksagung",
     "abstract": "Kurzdarstellung",
     "kurzdarstellung": "Abstract",
@@ -94,6 +95,7 @@
     "glossary": "Glossary",
     "chapter": "Chapter",
     "section": "Section",
+    "appendix": "Appendix",
     "ack": "Acknowledgements",
     "abstract": "Abstract",
     "kurzdarstellung": "Kurzdarstellung",
@@ -285,9 +287,14 @@
   }
 }
 
-#let thesis-start() = {
-  pagebreak(weak: true)
-  counter(page).update(1)
+#let appendix-content = state("appendix-content")
+#let appendix(body) = { appendix-content.update(body) }
+#let thesis-appendix() = context {
+  show heading.where(level: 1): set heading(supplement: context t("appendix"))
+  set heading(numbering: "A.1")
+  counter(heading).update(0)
+
+  appendix-content.get()
 }
 
 #let thesis(
@@ -503,6 +510,7 @@
 
     thesis-bibliography()
     thesis-glossary()
+    thesis-appendix()
   } else {
     body
   }
