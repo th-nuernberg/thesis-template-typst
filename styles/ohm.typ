@@ -158,7 +158,7 @@
 
   text(size: 8pt)[#t("faculty") #t("at_uni") #t("university")]
   v(6 * ex)
-  image("assets/ohm-logo.svg", width: 90%)
+  image("ohm-logo.svg", width: 90%)
   v(6 * ex)
   text(size: 14.4pt, p("type", map: t))
   v(8 * ex)
@@ -262,7 +262,7 @@
   if bib-file != none {
     frontmatter-heading(t("BIB"))
     bibliography(
-      bib-file,
+      "../" + bib-file,
       title: none,
       style: if bib-style == "alphanumeric" { "ieee" } else { bib-style },
     )
