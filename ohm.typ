@@ -128,12 +128,12 @@
 
 #let current-heading(level: 1) = {
   let before = query(selector(heading.where(level: level)).before(here()))
-  before = if before.len() > 1 { before.last() } else { none }
+  before = if before.len() > 0 { before.last() } else { none }
   let after = query(selector(heading.where(level: level)).after(here()))
-  after = if after.len() > 1 { after.first() } else { none }
+  after = if after.len() > 0 { after.first() } else { none }
 
   if level == 1 {
-    let isChapterPage = after == none or after != none and after.location().page() == here().page()
+    let isChapterPage = after != none and after.location().page() == here().page() or after == none and before != none and before.location().page() == here().page()
     if not isChapterPage and before != none { return before }
     return none
   } else {
