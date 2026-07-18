@@ -73,9 +73,6 @@
   /// List of keywords for the title page.
   keywords: none,
 
-  /// URL to a repository with additional references or content, e.g. a Git repository.
-  repository: none,
-
   /// Company that supported this thesis.
   company: none,
 
@@ -84,9 +81,6 @@
 
   /// Don't emit any parts of the document itself, only set the styling options. Structure can be set up manually using the thesis-* functions.
   manual: false,
-
-  /// Enable debug mode that shows errors within the document.
-  debug: false,
 
   /// Thesis content, use as global show rule is encouraged.
   body,
@@ -128,11 +122,9 @@
     supervisors: supervisors,
     examiners: examiners,
     keywords: keywords,
-    repository: repository,
     company: company,
     glossary: glossary,
     manual: manual,
-    debug: debug,
   ))
 
 
