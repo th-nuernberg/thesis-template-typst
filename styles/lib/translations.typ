@@ -9,6 +9,7 @@
 #let translations = (
   "de": (
     "at_uni": "an der Technischen Hochschule Nürnberg",
+    "city": "Nürnberg",
     "bachelor": "Bachelorarbeit",
     "master": "Masterarbeit",
     "report": "Bericht",
@@ -38,6 +39,10 @@
     "ack": "Danksagung",
     "abstract": "Kurzdarstellung",
     "kurzdarstellung": "Abstract",
+    "and": "und",
+    "for_a": "für eine",
+    "page": "Seite",
+    "numbering-1of1": "1 von 1",
   ),
   "de-gender": (
     "examiners-singular": "Prüfer*in",
@@ -54,6 +59,7 @@
   ),
   "en": (
     "at_uni": "at Nuremberg Institute of Technology",
+    "city": "Nuremberg",
     "bachelor": "Bachelor Thesis",
     "master": "Master Thesis",
     "report": "Report",
@@ -83,6 +89,10 @@
     "ack": "Acknowledgements",
     "abstract": "Abstract",
     "kurzdarstellung": "Kurzdarstellung",
+    "and": "and",
+    "for_a": "for a",
+    "page": "Page",
+    "numbering-1of1": "1 of 1",
   ),
 )
 
