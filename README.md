@@ -158,7 +158,11 @@ typst watch --pdf-standard a-2b document.typ
 ## Getting started: writing a thesis expose
 
 A good start for a thesis is to write an expose for the thesis topic.
-This repository also provides an expose template written in Typst; more about the expose can be found in the [expose README](expose/README.md) file.
+This repository also provides an expose template written in Typst.
+
+To start an expose, use the show rule `#show: expose.with(...)`.
+The options are compatible with the `thesis`-function options.
+You can find an example in [`expose.typ`](expose.typ).
 
 ## A few tips for writing your thesis
 
