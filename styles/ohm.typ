@@ -8,7 +8,7 @@
  *
  * Changelog:
  *
- * 1.0.0 (2026/XX/XX) Initial release
+ * 1.0.0 (2026/07/20) Initial release
  */
 
 // Exports for usage by end user
