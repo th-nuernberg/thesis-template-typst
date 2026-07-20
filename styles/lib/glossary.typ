@@ -4,7 +4,7 @@
  * Copyright (c) 2026 Nils Weber <me@vimkat.dev>
  */
 
-#import "@preview/glossarium:0.5.10": print-glossary, register-glossary
+#import "@preview/glossarium:0.5.10": make-glossary, print-glossary, register-glossary
 
 #import "translations.typ" : t
 #import "parameters.typ" : p
