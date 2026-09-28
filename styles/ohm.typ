@@ -9,6 +9,7 @@
  * Changelog:
  *
  * 1.0.0 (2026/07/20) Initial release
+ * 1.1.0 (2026/09/28) Add bookprint support
  */
 
 // Exports for usage by end user
