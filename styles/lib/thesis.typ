@@ -42,7 +42,7 @@
   /// Language of this document, only "de", "en" are fully supported.
   lang: none,
 
-  /// Whether to layout the document as a book (that can be bound) or not.
+  /// Whether to layout the document as a book (that can be bound) or not. Can be "single" (single-sided printing), "double" (double-sided printing) or false (no printing).
   book: false,
 
   /// Data to include in the header. Can be 'none' (empty), '"chapter"' (only current chapter), '"full"' (current chapter and section) or custom content.
@@ -124,9 +124,19 @@
   if abstract-semantic.main != none { set document(description: abstract-semantic.main) }
   if keywords != none { set document(keywords: keywords) }
 
+  // Defer margins
+  let margin-default = (x: 2.75cm, y: 3.5cm)
+  let margin = if book == false { margin-default } else {
+    let binding-offset = 0.5cm
+    (
+      single: (left:   margin-default.x + binding-offset,   right: margin-default.x - binding-offset, y: margin-default.y),
+      double: (inside: margin-default.x + binding-offset, outside: margin-default.x - binding-offset, y: margin-default.y),
+    ).at(book)
+  }
+
   set page(
     paper: "a4",
-    margin: (x: 2.75cm, y: 3.5cm),
+    margin: margin,
     numbering: "1",
     header: context {
       if _type(header) == str and ("chapter", "full").contains(header) {
@@ -135,18 +145,32 @@
         set text(style: "italic")
         show: upper
 
-        grid(
-          columns: (auto, 1fr, auto),
-          align: (left, right),
-          if sec != none [#heading-number(sec). #h(0.75em) #sec.body],
-          if chap != none {
-            if chap.numbering != none [#chap.supplement #heading-number(chap).#h(0.75em)]
-            chap.body
-          },
-        )
+        let header-left = if sec != none [#heading-number(sec). #h(0.75em) #sec.body]
+        let header-right = if chap != none {
+          if chap.numbering != none [#chap.supplement #heading-number(chap).#h(0.75em)]
+          chap.body
+        }
+
+        if book != "double" {
+          grid(
+            columns: (auto, 1fr, auto),
+            align: (left, right),
+            header-left,
+            header-right,
+          )
+        } else {
+          if calc.odd(here().page()) { align(right, header-right) }
+          else { header-left }
+        }
       }
       else if header == none { none }
       else { header }
+    },
+    footer: context {
+      if here().page-numbering() == none { return none }
+      if book == false { context align(center, counter(page).display()) }
+      else if book == "single" { context align(right, counter(page).display()) }
+      else if book == "double" { context align(if calc.odd(here().page()) { right } else { left }, counter(page).display()) }
     }
   )
 
@@ -170,7 +194,10 @@
   show heading.where(level: 1): it => {
     set text(size: 24.88pt, weight: "medium")
     set par(leading: 0.5em, justify: false)
-    pagebreak(weak: true)
+    {
+      set page(header: none, numbering: none)
+      pagebreak(weak: true, to: if book == false { none } else { "odd" })
+    }
     v(16*ex)
     if it.numbering != none {
       stack(spacing: 8*ex, text(size: 0.85em)[#it.supplement #heading-number(it)], it.body)
