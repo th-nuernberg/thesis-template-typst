@@ -34,6 +34,6 @@
     if chap == none or before == none { return none }
     let chap-num = counter(heading).at(chap.location()).at(0)
     let heading-chap-num = counter(heading).at(before.location()).at(0)
-    if chap-num == heading-chap-num { return before }
+    if chap-num == heading-chap-num and chap.numbering == before.numbering { return before }
   }
 }
